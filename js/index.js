@@ -1,4 +1,20 @@
-document.addEventListener("deviceready", onDeviceReady, false);
+var mapajs =null;
+$(document).on("pagechange", function (e, data) {
+  	  	if (($.type(data.toPage) == "object")	
+  	  		&& (data.toPage[0].id=="mapa")) {
+  	  			bbox = mapajs.getBbox()
+	  			mapajs.getMapImpl().updateSize();
+	  			mapajs.setBbox(bbox);
+	 	}
+});
+
+$(document).ready(function() {
+	if( window.isApp ) {
+		document.addEventListener("deviceready", onDeviceReady, false);
+    } else {
+        onDeviceReady();
+    }
+});
 function onDeviceReady() {
 	document.addEventListener("backbutton", onBackButton, false);
 }
@@ -61,12 +77,6 @@ function geolocalizar(){
 		}
 }
 
-function localizar(){
-	//console.log("buscar");
-	$.mobile.changePage("#localizador");
-	cargarProvincias();
-}
-
 function establecerLocalizacion(){
 	var entidad = $("#municipios").val();
 	if(entidad==""){
@@ -79,66 +89,7 @@ function establecerLocalizacion(){
 	cargarCategoria();
 }
 
-
-function cargarProvincias(){
-	 //console.log("cargarProvincias");
-	 $("#provincias").html("");
-	 loading(true);
-	 $.ajax({
-		 url: url + "/entidades/categorias",
-         type: "GET",
-         cache: true,
-         dataType: "json",
-         success: function(provinciasList){
-        	 var i = 0;
-        	 var length = provinciasList.length;
-        	 var htmlOptions = [];
-        	 for(i;i<length;i++){
-        		 htmlOptions.push('<option value="' + provinciasList[i].id +'">' + provinciasList[i].name + '</option>');
-        	 }
-        	 $('#provincias').append(htmlOptions.join('')).selectmenu('refresh');
-        	 loading(false);
-        	 //cargamos el municipio
-        	 cargarMunicipios();
-
-         },
-	 	 error: function(){
-	 		 alert("Se ha producido un error al obtener las provincias");
-	 	 }
-       });
-}
-
-function cargarMunicipios(){
-	//console.log("cargarMunicipios");
-	$("#municipios").html("");
-	var idProvincia = $("#provincias").val();
-	loading(true);
-	 $.ajax({
-		 url: url + "/entidades/" + idProvincia,
-         type: "GET",
-         cache: true,
-         dataType: "json",
-         success: function(municipiosList){
-        	 var i = 0;
-        	 var length = municipiosList.length;
-        	 var htmlOptions = [];
-        	 for(i;i<length;i++){
-        		 htmlOptions.push('<option value="' + municipiosList[i].id +'">' + municipiosList[i].name + '</option>');
-        	 }
-        	 $('#municipios').append(htmlOptions.join('')).selectmenu('refresh');
-        	 loading(false);
-         },
-         error: function(){
-	 		 alert("Se ha producido un error al obtener los municipios");
-	 		 loading(false);
-	 	 }
-       });
-}
-
-
 function cargarCategoria(cat){
-	//console.log("cargarCategoria");
-	
 	var requestParam = "";
 	if(cat != null){
 		requestParam = "?id_categoria=" + cat.id;
@@ -154,36 +105,42 @@ function cargarCategoria(cat){
 		 url: url + "/categorias" + requestParam ,
 	     type: "GET",
 	     cache: true,
-	     dataType: "json",
-	     success: function(categoriasList){
-	    	 var htmlElements = [];
-	    	 var i = 0;
-	    	 var length = categoriasList.length;
-    		 for(i;i<length;i++){
-    		 	
-		    if(!categoriasList[i].last){
-			    htmlElements.push("<li><a href='javascript:cargarCategoria(" + JSON.stringify(categoriasList[i]) + ")'>" +
-					    "<img width='80px' height:'80px' src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "'/>" +  
-					    categoriasList[i].name + 
-			    "</a></li>");
-		    }else{
-			    htmlElements.push("<li><a href='javascript:cargarDatos(" + JSON.stringify(categoriasList[i]) + ")'>" + 
-					    "<img width='80px' height:'80px' src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "'/>" +  
-					    categoriasList[i].name + 
-			    "</a></li>");
-		    }
-		    	
-    		 }
-	    	 htmlElements = "<ul id='listaCategorias' data-role='listview'>" + htmlElements.join(" ") + "</ul>";
-	    	 $("#contenidoCategorias").append(htmlElements);
-	    	 $("#listaCategorias").listview();
-	    	 loading(false);
-	     },
-	 	 error: function(){
-	 		 alert("Se ha producido un error al obtener las categorias");
-	 		 loading(false);
-	 	 }
-	   });
+	     dataType: "json"
+	 }).done(function(categoriasList){
+	     	//cat==null->estamos en la primera categoría.
+	     	
+	     	categoriasList.sort(sort_by('name', false));
+	    	
+	    	if (cat==null && categoriasList.length===1){
+	    	 	cargarCategoria(categoriasList[0]);
+	    	 	pilaCategorias = [];
+	    	 }else{
+	    	 	 htmlElements = [];
+	    		 for(i=0;i<categoriasList.length;i++){
+	    		 	
+	        		 if(!categoriasList[i].last){
+			    		 htmlElements.push("<li><a href='javascript:cargarCategoria(" + JSON.stringify(categoriasList[i]) + ")'>" +
+			    				 "<img width='80px' height:'80px' src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "'/>" +  
+			    				 categoriasList[i].name + 
+			    		 "</a></li>");
+			    	 }else{
+			    		 htmlElements.push("<li><a href='javascript:cargarDatos(" + JSON.stringify(categoriasList[i]) + ")'>" + 
+			    				 "<img width='80px' height:'80px' src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "'/>" +  
+			    				 categoriasList[i].name + 
+			    		 "</a></li>");
+			    	 }
+	    		 }
+	    	 
+		    	 htmlElements = "<ul id='listaCategorias' data-role='listview'>" + htmlElements.join(" ") + "</ul>";
+		    	 $("#contenidoCategorias").append(htmlElements);
+		    	 $("#listaCategorias").listview();
+	    	}
+     }).fail(function(){
+ 		 alert("Se ha producido un error al obtener las categorias");
+ 	 }).always(function(){
+ 	 	loading(false);
+ 	 });
+	   
 }
 
 
@@ -218,6 +175,9 @@ function paginarDatos(cat){
 	     cache: true,
 	     dataType: "json",
 	     success: function(datosList){
+	     	if(requestParam.indexOf('x')<0){ //si no es "cerca de mí"
+		  		datosList.sort(sort_by('name',false, function(a){return a.toUpperCase()}));
+	       	}
 	    	 var i = 0;
 	    	 var length = datosList.length;
 	    	 if(length==0){
@@ -240,7 +200,8 @@ function paginarDatos(cat){
 			 var htmlElements = [];
 			 for(i;i<length;i++){
 				 var liHtml = "<li><a href='javascript:verDato("+ cat.id + "," + JSON.stringify(datosList[i]) + ")'>";
-				 liHtml += datosList[i].name;
+				 
+				 liHtml += "<div class='listaDistancia'>"+datosList[i].name+"</div>";
 				 if(showDistance && datosList[i].distance){
 					 var distance = datosList[i].distance;
 					 if(distance < 1000){
@@ -283,82 +244,20 @@ function paginarDatos(cat){
 	  });
 }
 
-
-//function getTablaDatos(fields){
-//	var html = "";
-//	var i=0;
-//	var length = fields.length;
-//	for(i=0;i<length;i++){
-//		html += "<li><b>" + fields[i].field +"</b>: " + fields[i].value + "<li>";
-//	}
-//	if(html!=""){
-//		html = "<ul>" + html + "</ul>";
-//	}else{
-//		html = "No hay ningún elemento a mostrar";
-//	}
-//	
-//	return html;
-//}
-
-//OJO: todo esto necesita tener mapea en el mismo servidor => CROSS DOMAIN
-popup = null;
 function verDato(idCategoria,dato){
-	//obtenemos la url de mapea con el kml para el dato seleccionado
-	var urlKML = getUrlKML(idCategoria,dato.pkValue);
 	
-	//vamos a la página del mapa y la ocultamos hasta que se cargue el kml
-	$.mobile.changePage("#mapa");
-	$("#mapea").css("visibility","hidden");
-	loading(true);
-	//cargamos el frame
-	$('#mapea').attr('src', urlKML);
-	//una vez cargado el frame mostramos el mapa y hacemos zoom al dato
-	$("#mapea").off("load");
-	$("#mapea").on("load", function(){
-		loading(false);
-		$("#mapea").css("visibility","visible");
-		
-		//zoom al bounds
-		var bounds = new window.frames[0].OpenLayers.Bounds(dato.minX,dato.minY,dato.maxX,dato.maxY);
-		
-		// Transformamos las coordenadas de la vista al EPSG del Mapa (by Borja)
-		if(srcMapeaObjeto.projection != "EPSG:4326"){
-			var wgs84Projection = new window.frames[0].OpenLayers.Projection("EPSG:4326");
-			var utmProjection = new window.frames[0].OpenLayers.Projection(srcMapeaObjeto.projection);
-			var coord1 = new window.frames[0].OpenLayers.LonLat(dato.minX,dato.minY).transform(wgs84Projection, utmProjection);
-			var coord2 = new window.frames[0].OpenLayers.LonLat(dato.maxX,dato.maxY).transform(wgs84Projection, utmProjection);
-			bounds = new window.frames[0].OpenLayers.Bounds(coord1.lon,coord1.lat,coord2.lon,coord2.lat);
-			//console.log(bounds);
-		}
-		// Transformamos las coordenadas de la vista al EPSG del Mapa  (by Borja)
-		//window.frames[0].map.zoomToExtent(bounds);
-		setTimeout(function(){
-			window.frames[0].map.zoomToExtent(bounds);
-		}, 10);
-		fixHeight();
-	});
+  	bbox = ol.proj.transformExtent([dato.minX,dato.minY,dato.maxX,dato.maxY], 
+									'EPSG:4326', mapajs.getProjection().code);
+  	
+    
+  	var capaKML = new M.layer.KML(generarCapaKML(idCategoria,dato.pkValue));
+
+  	
+  	mapajs.addKML(capaKML);
+  	mapajs.setBbox(bbox);   	
+  	$.mobile.changePage("#mapa");
+  	  	
 }
-
-
-//obtiene la url de mapea con la capa KML anadida
-function getUrlKML(idCategoria,idDato){
-	var urlKML = null;
-	srcMapeaObjeto.parametros.layers = ORIGINAL_LAYERS;
-	if(srcMapeaObjeto.parametros.layers == null){
-		srcMapeaObjeto.parametros.layers = generarCapaKML(idCategoria,idDato);
-	}else{
-		if(srcMapeaObjeto.parametros.layers.trim().length==0){
-			srcMapeaObjeto.parametros.layers = generarCapaKML(idCategoria,idDato);
-		}else{
-			srcMapeaObjeto.parametros.layers += "," + generarCapaKML(idCategoria,idDato);
-		}
-	}
-	urlKML = srcMapeaObjeto.url + "?" + decodeURIComponent($.param(srcMapeaObjeto.parametros));
-	
-	//console.log(urlKML);
-	return urlKML;
-}
-
 
 //genera sintaxis para crear una capa KML en mapea
 function generarCapaKML(idCategoria,idDato){
@@ -369,6 +268,7 @@ function generarCapaKML(idCategoria,idDato){
 //funcion de entrada
 function init(){
 	loading(true);
+
 	$.ajax({
 		 url: url + "/application/" + idAplicacion,
 	     type: "GET",
@@ -384,19 +284,34 @@ function init(){
 	    	 }else{
 	    		 idEntidad = aplicacion.idEntidad;
 	    	 }
-	    	 if(aplicacion.wmcURL && aplicacion.wmcURL.trim().length>0){
-	    		srcMapeaObjeto = obtenerUrlComoObjeto(aplicacion.wmcURL); //JGL - eliminación srcMapea
-	    	 }
 	    	 if (urlGB != ""){
 	    	 	$("#btn-gb").show();
 	    	 }
+	    	 mapajs = M.map({
+				controls:["location"],
+				container:"map",
+				wmcfile: searchParam(aplicacion.wmcURL,'wmcfile')
+			 });
+			 
 	    	 //$.mobile.changePage("#inicio");
-		navigator.splashscreen.hide();
+			navigator.splashscreen.hide();
 	     },
 	     error: function(){
 	 		 alert("Se ha producido un error al obtener la aplicación con el id: " + idAplicacion);
 	 	 }
 	 });
+}
+
+function searchParam(stringURL, param){
+	paramValue ="";
+	$.each(stringURL.split('&'), function( index, value ){
+	    pos = value.indexOf(param);
+	 	if (pos >= 0){
+	 		paramValue = value.substr(pos+param.length+1,value.length);
+	 		return false;
+	  	}
+  	});
+	return paramValue;
 }
 
 function inicio(){
@@ -411,6 +326,8 @@ function inicio(){
 	clearSuggest();
 //
 	$.mobile.changePage("#inicio");
+	mapajs.getKML().length>0? mapajs.removeKML(mapajs.getKML()[0]) :null;
+	mapajs.removeLabel();
 }
 
 function atras(){
@@ -435,6 +352,8 @@ function atrasMapa(){ //JGL - cambiado (hay 2 puntos de entrada a mapa)
 	}else{
 		inicio();
 	}
+	mapajs.getKML().length>0? mapajs.removeKML(mapajs.getKML()) :null;
+	mapajs.removeLabel();
 }
 
 //JGL ==================================== Integración de GB y modificaciones ===============================================
@@ -459,7 +378,8 @@ $(document).on("pageinit", "#busqueda", function() {
 	            	//console.log(response);
 	            	if(response.spellcheck.suggestions.length>0){
 		                $.each(response.spellcheck.suggestions[1].suggestion, function ( i, val ) {
-		                    html += "<li><a href='javascript:buscarGeobusquedas(\""+val+"\",directResultGB)'>"+val+"</a></li>";
+		                	clearVal = val.replace(/\"/g,"");
+		                    html += "<li><a href='javascript:buscarGeobusquedas(\""+clearVal+"\",directResultGB)'>"+val+"</a></li>";
 		                });
 		                $ul.html(html);
 		                $ul.listview("refresh");
@@ -497,7 +417,7 @@ function listarResultadosGB(result){
 		var htmlElements = [];
 		for(i=0;i<datosList.length;i++){
 			 var liHtml = "<li><a href='javascript:verDatoGB(" + JSON.stringify(datosList[i]) + ")'>";
-			 liHtml += datosList[i].nombre_ext;
+			 liHtml += datosList[i].nombre;
 			 liHtml += "</a></li>";
 			 htmlElements.push(liHtml);
 		 }
@@ -523,55 +443,47 @@ function clearSuggest(){
 }
 
 function verDatoGB(dato){
-	
-	$.mobile.changePage("#mapa");
-	$("#mapea").css("visibility","hidden");
-	loading(true);
-	$('#mapea').attr('src', aplicacion.wmcURL);
-	//una vez cargado el frame mostramos el mapa y hacemos zoom al dato
-	$("#mapea").off("load");
-	$("#mapea").on("load", function(){
-		
-		wkt = new window.frames[0].OpenLayers.Format.WKT();
-		geom = wkt.read(dato.geom).geometry;
-		point = null;
-		if (geom.components && geom.components.length>0) {
-			point = geom.getCentroid();
-		}else{
-			point = geom;
-		}
-					
-		if(srcMapeaObjeto.projection != "EPSG:25830"){
-			point.transform("EPSG:25830", srcMapeaObjeto.projection);
-			//console.log(point);
-		}
-		
-		notShow = [ "the_geom", "geom", "_version_", "solrid", "keywords" ];
-		htmlTable = "<table class=\"mapea-table\"><tbody>";
-		$.each(dato, function(k, v) {
-			if ($.inArray(k,notShow)==-1){
-		        	htmlTable += "<tr><td><b>";
-		        	htmlTable += k;
-		        	htmlTable += "</b></td><td>";
-		        	htmlTable += v;
-		        	htmlTable += "</td></tr>";
-			}
 
-		});
-		htmlTable += "</tbody></table>";
-		
-		
-		setTimeout(function(){ //chapu para esperar a mapea
-			window.frames[0].map.drawCenter(point.x,point.y,15,htmlTable,true);
-			window.frames[0].map.popups[0].setHeader("<div class='geosearch-header'>" + dato.keywords[0] + "</div>");
-			          		
-			$("#mapea").css("visibility","visible");
-			loading(false);
-			fixHeight();
-		},10);	
+	f =  new ol.format.WKT().readFeature(dato.geom);
+	f.setId(dato.solrid);
+	geom = f.getGeometry();
+	point = ol.extent.getCenter(geom.getExtent()); //vale para todo tipo de geometrías
+	
+	 //JGL - no establezco todas las propiedades para eliminar los campos no deseados
+    //f.setProperties(dato);																
+	f.properties ={};
+	htmlTable = "<div class='result'>";
+	$.each(dato, function(k, v) {
+		if ($.inArray(k,attrNotShow)==-1){
+				f.properties[k] = v;
+				htmlTable += "<table><tbody><tr><td class='key'>";
+		        htmlTable += k;
+		        htmlTable += "</td><td class='value'>";
+		        htmlTable += v;
+		        htmlTable += "</td></tr></tbody></table>";
+		}
+
 	});
+	htmlTable += "</div>";
+
+  	mapajs.setCenter({
+		  'x': point[0],
+		  'y': point[1],
+		  'draw': true  
+		}).setZoom(13).addLabel(htmlTable);
+  	$(".m-popup").removeClass("m-default").addClass("m-full");
+  	$.mobile.changePage("#mapa");
 }
-function fixHeight(){
-	$('#mapea').height($(document).height() - $("#mapa-header").height());
+
+var sort_by = function(field, reverse, primer){
+
+   var key = primer ? 
+       function(x) {return primer(x[field])} : 
+       function(x) {return x[field]};
+
+   reverse = !reverse ? 1 : -1;
+
+   return function (a, b) {
+       return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+     } 
 }
-$(window).resize(function () { fixHeight(); });
