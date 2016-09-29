@@ -303,15 +303,15 @@ function init(){
 }
 
 function searchParam(stringURL, param){
-	paramValue ="";
+	paramValue = [];
 	$.each(stringURL.split('&'), function( index, value ){
 	    pos = value.indexOf(param);
-	 	if (pos >= 0){
-	 		paramValue = value.substr(pos+param.length+1,value.length);
-	 		return false;
-	  	}
-  	});
-	return paramValue;
+		if (pos >= 0){
+			paramValue = decodeURIComponent(value.substr(pos+param.length+1,value.length)).split(',');      
+			return false;
+		}
+	});    
+  	return paramValue.lenght>1? paramValue : paramValue.toString();	
 }
 
 function inicio(){
