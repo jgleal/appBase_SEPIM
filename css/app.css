@@ -40,3 +40,6 @@ li>a.ui-btn{
 td.value{
   white-space: normal!important;
 }
+.m-wmcselector-container{
+  height: 21px!important;
+}
