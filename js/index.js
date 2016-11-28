@@ -1,6 +1,8 @@
 var mapajs =null;
+var capaKML = null;
+var capaJSON = null;
 $(document).on("pagechange", function (e, data) {
-  	  	if (($.type(data.toPage) == "object")	
+  	  	if (($.type(data.toPage) == "object")
   	  		&& (data.toPage[0].id=="mapa")) {
   	  			bbox = mapajs.getBbox()
 	  			mapajs.getMapImpl().updateSize();
@@ -15,45 +17,47 @@ $(document).ready(function() {
         onDeviceReady();
     }
 });
+
 function onDeviceReady() {
 	document.addEventListener("backbutton", onBackButton, false);
 }
+
 function onBackButton(){
-	navigator.app.exitApp();
-}
-
-function obtenerUrlComoObjeto(url){
-	var urlObjeto = {};
-	separadorUrlParametrosIndex = url.indexOf("?");
-	
-	urlObjeto.url = url.substr(0, separadorUrlParametrosIndex);
-	urlObjeto.parametros = {};
-	var parametrosUrl = url.substr(separadorUrlParametrosIndex+1).split("&");
-	var i = 0;
-	for(i=0;i<parametrosUrl.length;i++){
-		var parametro = parametrosUrl[i].split("=");
-		if(parametro[0].toLowerCase()=="projection"){
-			var projection = parametro[1].split("*");
-			if(projection[0].toLowerCase().indexOf("EPSG")){
-				urlObjeto.projection = projection[0];
-			}else{
-				urlObjeto.projection = projection[1];
-			}
-		}
-		urlObjeto.parametros[parametro[0]]= parametro[1];
+  page = $.mobile.pageContainer.pagecontainer('getActivePage').attr('id');
+	switch(page) {
+	    case 'inicio':
+	        navigator.app.exitApp();
+	        break;
+	    case 'mapa':
+	        atrasMapa(page);
+	        break;
+	    default:
+	        atras(page);
 	}
-	ORIGINAL_LAYERS = urlObjeto.parametros.layers;
-	
-	return urlObjeto;
 }
 
-// controladores
 function loading(showLoading){
 	if(showLoading){
 		$.mobile.loading( "show",{});
 	}else{
 		$.mobile.loading( "hide",{});
 	}
+}
+
+function clearSuggest(){
+	$('#listSuggest').empty();
+	$('#txtBusqueda').val('');
+}
+
+function clearMap(){
+  capaKML!=null && mapajs.removeLayers(capaKML);
+	//capaJSON!=null && mapajs.removeLayers(capaJSON); //no funciona
+	capaJSON!=null && capaJSON.getImpl().destroy();
+	capaJSON = null;capaKML= null;
+}
+
+function errorExit(){
+  navigator.app.exitApp();
 }
 
 function geolocalizar(){
@@ -77,24 +81,12 @@ function geolocalizar(){
 		}
 }
 
-function establecerLocalizacion(){
-	var entidad = $("#municipios").val();
-	if(entidad==""){
-		alert("Ha de seleccionar las provincias y los municipios");
-		return;
-	}
-	idEntidad = entidad;
-	coor_x = null;
-	coor_y = null;
-	cargarCategoria();
-}
-
 function cargarCategoria(cat){
 	var requestParam = "";
 	if(cat != null){
 		requestParam = "?id_categoria=" + cat.id;
 		pilaCategorias.push(cat);
-	
+
 	}else{
 		requestParam = "?id_aplicacion=" + aplicacion.id;
 	}
@@ -108,29 +100,27 @@ function cargarCategoria(cat){
 	     dataType: "json"
 	 }).done(function(categoriasList){
 	     	//cat==null->estamos en la primera categoría.
-	     	
 	     	categoriasList.sort(sort_by('name', false));
-	    	
 	    	if (cat==null && categoriasList.length===1){
 	    	 	cargarCategoria(categoriasList[0]);
 	    	 	pilaCategorias = [];
 	    	 }else{
 	    	 	 htmlElements = [];
 	    		 for(i=0;i<categoriasList.length;i++){
-	    		 	
+
 	        		 if(!categoriasList[i].last){
 			    		 htmlElements.push("<li><a href='javascript:cargarCategoria(" + JSON.stringify(categoriasList[i]) + ")'>" +
-			    				 "<img width='80px' height:'80px' src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "'/>" +  
-			    				 categoriasList[i].name + 
+			    				 "<img width='80px' height:'80px' src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "'/>" +
+			    				 categoriasList[i].name +
 			    		 "</a></li>");
 			    	 }else{
-			    		 htmlElements.push("<li><a href='javascript:cargarDatos(" + JSON.stringify(categoriasList[i]) + ")'>" + 
-			    				 "<img width='80px' height:'80px' src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "'/>" +  
-			    				 categoriasList[i].name + 
+			    		 htmlElements.push("<li><a href='javascript:cargarDatos(" + JSON.stringify(categoriasList[i]) + ")'>" +
+			    				 "<img width='80px' height:'80px' src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "'/>" +
+			    				 categoriasList[i].name +
 			    		 "</a></li>");
 			    	 }
 	    		 }
-	    	 
+
 		    	 htmlElements = "<ul id='listaCategorias' data-role='listview'>" + htmlElements.join(" ") + "</ul>";
 		    	 $("#contenidoCategorias").append(htmlElements);
 		    	 $("#listaCategorias").listview();
@@ -140,9 +130,8 @@ function cargarCategoria(cat){
  	 }).always(function(){
  	 	loading(false);
  	 });
-	   
-}
 
+}
 
 function cargarDatos(cat){
 	//console.log(cat);
@@ -163,11 +152,11 @@ function paginarDatos(cat){
 	}else{
 		showDistance = true;
 		requestParam += "?x=" + coor_x + "&y=" + coor_y;
-	}	
+	}
 	if (datos.limit!=-1){
 		requestParam += "&limit=" + datos.limit + "&offset=" + datos.offset;
 	}
-//JGL12022015	
+//JGL12022015
 	loading(true);
 	$.ajax({
 		 url: url + "/datos/"+ cat.id + requestParam ,
@@ -189,18 +178,18 @@ function paginarDatos(cat){
 	    			 alert("Ya no hay mas datos para este filtro");
 	    		 }
 	    	 }
-	    	 
+
 	    	 //eliminamos el botón de cargando
 	    	 if(datos.offset!=0){
 	    		 $("#listaDatos li").last().remove();
     			 //$("#listaDatos li").last().css("height");
     			 //$("#listaDatos li").last().css("height","20px");
 	    	 }
-	    	 
+
 			 var htmlElements = [];
 			 for(i;i<length;i++){
 				 var liHtml = "<li><a href='javascript:verDato("+ cat.id + "," + JSON.stringify(datosList[i]) + ")'>";
-				 
+
 				 liHtml += "<div class='listaDistancia'>"+datosList[i].name+"</div>";
 				 if(showDistance && datosList[i].distance){
 					 var distance = datosList[i].distance;
@@ -211,7 +200,7 @@ function paginarDatos(cat){
 						 distance = distance/1000;
 						 //redondeamos con 1 decimal
 						 distance = Math.round(distance * 10) / 10;
-						 distance += " km"; 
+						 distance += " km";
 					 }
 					 liHtml += "<span class='ui-li-count'>" + distance + "</span>";
 				 }
@@ -223,7 +212,7 @@ function paginarDatos(cat){
 			}
 		 $("#listaDatos").append(htmlElements);
 	    	 $("#listaDatos").listview("refresh");
-	    	 
+
 		if (datos.limit!=-1){//JGL
 		    	 //estilos para el obtener mas datos
 		    	 var botonObtenerMasDatos =  $($("#listaDatos li a").last()[0]);
@@ -232,11 +221,9 @@ function paginarDatos(cat){
 		    	 botonObtenerMasDatos.css("color","#aaa");
 		    	 botonObtenerMasDatos.css("text-align","center");
 		}
-	    	 
-	    	 
-	    	 datos.offset += datos.limit;
-	    	 loading(false);
-	     },
+	  datos.offset += datos.limit;
+	  loading(false);
+	},
 	 	 error: function(){
 	 		 alert("Se ha producido un error al obtener los datos");
 	 		 loading(false);
@@ -245,18 +232,24 @@ function paginarDatos(cat){
 }
 
 function verDato(idCategoria,dato){
-	
-  	bbox = ol.proj.transformExtent([dato.minX,dato.minY,dato.maxX,dato.maxY], 
-									'EPSG:4326', mapajs.getProjection().code);
-  	
-    
-  	var capaKML = new M.layer.KML(generarCapaKML(idCategoria,dato.pkValue));
 
-  	
+  	bbox = ol.proj.transformExtent([dato.minX,dato.minY,dato.maxX,dato.maxY],
+									'EPSG:4326', mapajs.getProjection().code);
+
+    capaKML = new M.layer.KML(generarCapaKML(idCategoria,dato.pkValue));
+
+
   	mapajs.addKML(capaKML);
-  	mapajs.setBbox(bbox);   	
+
+    capaKML.getImpl().getOL3Layer().getSource().on('addfeature', function(e) {
+  			f=e.feature.clone(); //clono para no modificar la etiqueta
+  			f.set('name', 'Información');
+  			capaKML.getImpl().selectFeatures([f]);
+  		});
+
+  	mapajs.setBbox(bbox);
   	$.mobile.changePage("#mapa");
-  	  	
+
 }
 
 //genera sintaxis para crear una capa KML en mapea
@@ -292,12 +285,13 @@ function init(){
 				container:"map",
 				wmcfile: searchParam(aplicacion.wmcURL,'wmcfile')
 			 });
-			 
+
 	    	 //$.mobile.changePage("#inicio");
 			navigator.splashscreen.hide();
 	     },
-	     error: function(){
-	 		 alert("Se ha producido un error al obtener la aplicación con el id: " + idAplicacion);
+       error: function(){
+         navigator.notification.alert("Se ha producido un error al obtener la aplicación con el id: "
+                                        + idAplicacion, errorExit, "Error", "Salir");
 	 	 }
 	 });
 }
@@ -321,19 +315,16 @@ function inicio(){
 	coor_y = null;
 	idEntidad = aplicacion.idEntidad;
 	datos.offset = 0;
-//JGL
-	$("#listaDatos").empty(); 
+	$("#listaDatos").empty();
 	clearSuggest();
-//
+
 	$.mobile.changePage("#inicio");
-	mapajs.getKML().length>0? mapajs.removeKML(mapajs.getKML()[0]) :null;
-	mapajs.removeLabel();
+  clearMap();
 }
 
-function atras(){
-	//console.log("atras");
+function atras(actualPage){
 	if(pilaCategorias.length==0){
-		if ($("#txtBusqueda").val().length>0){
+		if (actualPage!="busqueda" && $("#txtBusqueda").val().length>0){
 			$.mobile.changePage("#busqueda");
 		}else{
 			inicio();
@@ -344,7 +335,8 @@ function atras(){
 		cargarCategoria(categoria);
 	}
 }
-function atrasMapa(){ //JGL - cambiado (hay 2 puntos de entrada a mapa)
+
+function atrasMapa(actualPage){ //JGL - cambiado (hay 2 puntos de entrada a mapa)
 	if ($("#listaDatos li").length>0){
 		$.mobile.changePage("#datos");
 	}else if ($("#listSuggest li").length>0){
@@ -352,9 +344,9 @@ function atrasMapa(){ //JGL - cambiado (hay 2 puntos de entrada a mapa)
 	}else{
 		inicio();
 	}
-	mapajs.getKML().length>0? mapajs.removeKML(mapajs.getKML()) :null;
-	mapajs.removeLabel();
+	clearMap();
 }
+
 
 //JGL ==================================== Integración de GB y modificaciones ===============================================
 $(document).on("pageinit", "#busqueda", function() {
@@ -408,7 +400,7 @@ function buscarGeobusquedas(query, callback){
 	 		 alert("Se ha producido un error al realizar la búsqueda");
 	 	},
 	 	final: function(){loading(false)}
-    });    
+    });
 }
 
 function listarResultadosGB(result){
@@ -421,69 +413,79 @@ function listarResultadosGB(result){
 			 liHtml += "</a></li>";
 			 htmlElements.push(liHtml);
 		 }
-		
+
 		 $.mobile.changePage("#datos");
 		 $("#listaDatos").html(htmlElements).listview("refresh");
-		 
+
 	}
 }
-	
+
 function directResultGB(result){
 	datosList = result.response.docs;
 	if (datosList!=null && datosList.length>0){
-		$("#listaDatos").empty(); 
+		$("#listaDatos").empty();
 		verDatoGB(datosList[0]);
-		
+
 	}
 }
 
-function clearSuggest(){
-	$('#listSuggest').empty(); 
-	$('#txtBusqueda').val('');
-}
+
 
 function verDatoGB(dato){
 
-	f =  new ol.format.WKT().readFeature(dato.geom);
+  f =  new ol.format.WKT().readFeature(dato.geom);
+	delete dato.geom;
 	f.setId(dato.solrid);
-	geom = f.getGeometry();
-	point = ol.extent.getCenter(geom.getExtent()); //vale para todo tipo de geometrías
-	
-	 //JGL - no establezco todas las propiedades para eliminar los campos no deseados
-    //f.setProperties(dato);																
-	f.properties ={};
-	htmlTable = "<div class='result'>";
-	$.each(dato, function(k, v) {
-		if ($.inArray(k,attrNotShow)==-1){
-				f.properties[k] = v;
-				htmlTable += "<table><tbody><tr><td class='key'>";
-		        htmlTable += k;
-		        htmlTable += "</td><td class='value'>";
-		        htmlTable += v;
-		        htmlTable += "</td></tr></tbody></table>";
-		}
+	delete dato.solrid;
+	f.setProperties(dato);
+	bbox = f.getGeometry().getExtent();
+	point = ol.extent.getCenter(bbox); //vale para todo tipo de geometrías
 
-	});
-	htmlTable += "</div>";
+	capaJSON = new M.layer.GeoJSON({
+    	name: "Información",
+    	source: new ol.format.GeoJSON().writeFeatureObject(f)},
+    	{hide: attrNotShow});
 
-  	mapajs.setCenter({
+	mapajs.addLayers(capaJSON);
+
+	capaJSON.getImpl().getOL3Layer().setStyle(new ol.style.Style({
+	  image: new ol.style.Icon({
+	     src: 'lib/mapea/assets/img/m-pin-24-sel.svg'
+	  }),
+	  text: new ol.style.Text({
+	          text: f.get('organismo'),
+	          font: 'bold 13px Helvetica, sans-serif',
+	          offsetY: -20,
+	          scale: 1,
+	          fill: new ol.style.Fill({
+	          	color: 'white'
+	          }),
+	          stroke: new ol.style.Stroke({
+	            color: 'black',
+	            width: 1.2
+	          })
+	    })
+	}));
+	capaJSON.getImpl().selectFeatures([f],ol.extent.getCenter(f.getGeometry().getExtent()));
+
+
+	mapajs.setBbox(bbox);
+  	/*mapajs.setCenter({
 		  'x': point[0],
 		  'y': point[1],
-		  'draw': true  
-		}).setZoom(13).addLabel(htmlTable);
-  	$(".m-popup").removeClass("m-default").addClass("m-full");
+		  'draw': false}).setZoom(15);  */
   	$.mobile.changePage("#mapa");
 }
 
 var sort_by = function(field, reverse, primer){
 
-   var key = primer ? 
-       function(x) {return primer(x[field])} : 
+   var key = primer ?
+       function(x) {return primer(x[field])} :
        function(x) {return x[field]};
 
    reverse = !reverse ? 1 : -1;
 
    return function (a, b) {
        return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
-     } 
+     }
 }
