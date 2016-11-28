@@ -49,3 +49,6 @@ td.value{
 .m-popup>div.m-content {
     text-align: left!important;
 }
+.m-popup>div.m-content>div.m-body{
+  margin-top: auto!important;
+}
