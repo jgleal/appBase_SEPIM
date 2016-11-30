@@ -107,18 +107,10 @@ function cargarCategoria(cat){
 	    	 }else{
 	    	 	 htmlElements = [];
 	    		 for(i=0;i<categoriasList.length;i++){
-
-	        		 if(!categoriasList[i].last){
-			    		 htmlElements.push("<li><a href='javascript:cargarCategoria(" + JSON.stringify(categoriasList[i]) + ")'>" +
-			    				 "<img width='80px' height:'80px' src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "'/>" +
-			    				 categoriasList[i].name +
-			    		 "</a></li>");
-			    	 }else{
-			    		 htmlElements.push("<li><a href='javascript:cargarDatos(" + JSON.stringify(categoriasList[i]) + ")'>" +
-			    				 "<img width='80px' height:'80px' src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "'/>" +
-			    				 categoriasList[i].name +
-			    		 "</a></li>");
-			    	 }
+               funcionJS = categoriasList[i].last ? "javascript:cargarDatos" : "javascript:cargarCategoria";
+               htmlElements.push("<li><a href='" + funcionJS + "(" + JSON.stringify(categoriasList[i]) + ")'>" +
+                   "<img src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "' width='80' height='80' />" +
+                   categoriasList[i].name + "</a></li>");
 	    		 }
 
 		    	 htmlElements = "<ul id='listaCategorias' data-role='listview'>" + htmlElements.join(" ") + "</ul>";
@@ -280,10 +272,11 @@ function init(){
 	    	 if (urlGB != ""){
 	    	 	$("#btn-gb").show();
 	    	 }
+         console.log(searchParam(aplicacion.wmcURL,'wmcfile'));
 	    	 mapajs = M.map({
-				controls:["location"],
-				container:"map",
-				wmcfile: searchParam(aplicacion.wmcURL,'wmcfile')
+				       controls:["location"],
+				       container:"map",
+				       wmcfile: searchParam(aplicacion.wmcURL,'wmcfile')
 			 });
 
 	    	 //$.mobile.changePage("#inicio");
@@ -297,15 +290,15 @@ function init(){
 }
 
 function searchParam(stringURL, param){
-	paramValue ="";
+	paramValue = [];
 	$.each(stringURL.split('&'), function( index, value ){
 	    pos = value.indexOf(param);
-	 	if (pos >= 0){
-	 		paramValue = value.substr(pos+param.length+1,value.length);
-	 		return false;
-	  	}
-  	});
-	return paramValue;
+		if (pos >= 0){
+			paramValue = decodeURIComponent(value.substr(pos+param.length+1,value.length)).split(',');
+			return false;
+		}
+	});
+  	return paramValue.lenght>1? paramValue : paramValue.toString();
 }
 
 function inicio(){
