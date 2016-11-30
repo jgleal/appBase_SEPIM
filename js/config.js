@@ -1,7 +1,7 @@
 //******** configuración **********************//
-url = "http://www.callejerodeandalucia.es/sepim/api";
-urlGB = ""; //JGL - vacío si no tiene GB
-idAplicacion = 148; //id de la aplicación
+url = "http://mapea-sigc.juntadeandalucia.es/sepim_server/api";
+urlGB = "http://geobusquedas-sigc.juntadeandalucia.es/geobusquedas/[CORE]"; //JGL - vacío si no tiene GB
+idAplicacion = [ID]; //id de la aplicación
 //*********************************************//
 aplicacion = null;
 pilaCategorias = [];
