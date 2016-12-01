@@ -298,7 +298,7 @@ function searchParam(stringURL, param){
 			return false;
 		}
 	});
-  	return paramValue.lenght>1? paramValue : paramValue.toString();
+  	return paramValue.length>1? paramValue : paramValue.toString();
 }
 
 function inicio(){
