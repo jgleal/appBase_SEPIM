@@ -272,7 +272,7 @@ function init(){
 	    	 if (urlGB != ""){
 	    	 	$("#btn-gb").show();
 	    	 }
-         console.log(searchParam(aplicacion.wmcURL,'wmcfile'));
+        
 	    	 mapajs = M.map({
 				       controls:["location"],
 				       container:"map",
