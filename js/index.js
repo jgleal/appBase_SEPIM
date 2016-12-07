@@ -261,7 +261,8 @@ function getApp(){
             type: "GET",
             cache: true,
             dataType: "json"
-        }).done(function(aplicacion) {
+        }).done(function(app) {
+            aplicacion=app;
 	      	 if(aplicacion.name != null){
 	    		 $("#app-name").html(aplicacion.name);
 	    	 }
