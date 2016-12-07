@@ -1,4 +1,4 @@
-var mapajs =null;
+    var mapajs =null;
 var capaKML = null;
 var capaJSON = null;
 $(document).on("pagechange", function (e, data) {
@@ -20,6 +20,9 @@ $(document).ready(function() {
 
 function onDeviceReady() {
 	document.addEventListener("backbutton", onBackButton, false);
+    getApp().always(function(){
+        navigator.splashscreen.hide();
+    });
 }
 
 function onBackButton(){
@@ -250,18 +253,17 @@ function generarCapaKML(idCategoria,idDato){
 	return capaKML;
 }
 
-//funcion de entrada
-function init(){
-	loading(true);
 
-	$.ajax({
-		 url: url + "/application/" + idAplicacion,
-	     type: "GET",
-	     cache: true,
-	     dataType: "json",
-	     success: function(app){
-	    	 aplicacion = app;
-	    	 if(aplicacion.name != null){
+function getApp(){
+	
+	return $.ajax({
+            url: url + "/application/" + idAplicacion,
+            type: "GET",
+            cache: true,
+            dataType: "json"
+        }).done(function(app) {
+            aplicacion=app;
+	      	 if(aplicacion.name != null){
 	    		 $("#app-name").html(aplicacion.name);
 	    	 }
 	    	 if(aplicacion.idEntidad == null){
@@ -272,21 +274,16 @@ function init(){
 	    	 if (urlGB != ""){
 	    	 	$("#btn-gb").show();
 	    	 }
-         console.log(searchParam(aplicacion.wmcURL,'wmcfile'));
+        
 	    	 mapajs = M.map({
 				       controls:["location"],
 				       container:"map",
 				       wmcfile: searchParam(aplicacion.wmcURL,'wmcfile')
-			 });
-
-	    	 //$.mobile.changePage("#inicio");
-			navigator.splashscreen.hide();
-	     },
-       error: function(){
-         navigator.notification.alert("Se ha producido un error al obtener la aplicación con el id: "
+			 });			
+	     }).fail(function(){
+            navigator.notification.alert("Se ha producido un error al obtener la aplicación con el id: "
                                         + idAplicacion, errorExit, "Error", "Salir");
-	 	 }
-	 });
+	 	 });	 
 }
 
 function searchParam(stringURL, param){
@@ -298,7 +295,7 @@ function searchParam(stringURL, param){
 			return false;
 		}
 	});
-  	return paramValue.lenght>1? paramValue : paramValue.toString();
+  	return paramValue.length>1? paramValue : paramValue.toString();
 }
 
 function inicio(){
