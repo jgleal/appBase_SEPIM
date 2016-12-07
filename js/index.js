@@ -111,9 +111,9 @@ function cargarCategoria(cat){
 	    	 	 htmlElements = [];
 	    		 for(i=0;i<categoriasList.length;i++){
                funcionJS = categoriasList[i].last ? "javascript:cargarDatos" : "javascript:cargarCategoria";
-               htmlElements.push("<li><a href='" + funcionJS + "(" + JSON.stringify(categoriasList[i]) + ")'>" +
+               htmlElements.push("<li onclick='" + funcionJS + "(" + JSON.stringify(categoriasList[i]) + ")'>" +
                    "<img src='" + url+ "/categorias/" + categoriasList[i].id + "/logo/" + "' width='80' height='80' />" +
-                   categoriasList[i].name + "</a></li>");
+                   categoriasList[i].name + "</li>");
 	    		 }
 
 		    	 htmlElements = "<ul id='listaCategorias' data-role='listview'>" + htmlElements.join(" ") + "</ul>";
