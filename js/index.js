@@ -272,7 +272,7 @@ function init(){
 	    	 if (urlGB != ""){
 	    	 	$("#btn-gb").show();
 	    	 }
-         console.log(searchParam(aplicacion.wmcURL,'wmcfile'));
+        
 	    	 mapajs = M.map({
 				       controls:["location"],
 				       container:"map",
@@ -298,7 +298,7 @@ function searchParam(stringURL, param){
 			return false;
 		}
 	});
-  	return paramValue.lenght>1? paramValue : paramValue.toString();
+  	return paramValue.length>1? paramValue : paramValue.toString();
 }
 
 function inicio(){
