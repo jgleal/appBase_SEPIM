@@ -31,7 +31,7 @@ li>a.ui-btn{
 .listaFiltrada {
     padding-top : 0.9em;
 }
-.listaFiltrada li {
+#listaDatos li {
     -webkit-transform : translateZ(0); 
     -o-transform : translateZ(0); 
     -moz-transform : translateZ(0); 
