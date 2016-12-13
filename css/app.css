@@ -31,12 +31,10 @@ li>a.ui-btn{
 .listaFiltrada {
     padding-top : 0.9em;
 }
-#listaDatos li {
-    -webkit-transform : translateZ(0); 
-    -o-transform : translateZ(0); 
-    -moz-transform : translateZ(0); 
-    transform : translateZ(0); 
-}
+.scrollable {
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
+        }
 .listaFiltrada form {
     position : fixed;
     top      : 2.2em;
