@@ -56,7 +56,11 @@ td.value{
 .m-wmcselector-container{
    height: 21px!important;
 }
-/*bug iOS - Safari*/
+/*bugs iOS - Safari*/
 .m-areas > div.m-area.m-top, .m-areas > div.m-area.m-bottom, .m-areas > div.m-area > div.m-panel.m-map-info, .m-areas > div.m-area > div.m-panel.m-map-info > div.m-panel-controls {
    visibility: visible!important;
 }
+.m-popup.m-collapsed {
+  top: 93vh;
+}
+/*bugs iOS*/
