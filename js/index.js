@@ -238,6 +238,16 @@ function verDato(idCategoria,dato){
   	mapajs.addKML(capaKML);
 
     capaKML.getImpl().getOL3Layer().getSource().on('addfeature', function(e) {
+	    		if(window.isIOS()){
+				desc = e.feature.get('description');
+				desc.replace(/geo:(\-?\d+(\.\d+)?),\s?(\-?\d+(\.\d+)?)/,"maps://maps.apple.com");
+  				/*$(desc).find('a').each(function(i){
+        				if($(this).href.includes('geo')){
+          					$(this).attr("href", "maps://maps.apple.com?" + $(this).href.split('?')[1]);
+          				}
+        			});*/
+				e.feature.set('description',desc);
+			}
   			f=e.feature.clone(); //clono para no modificar la etiqueta
   			f.set('name', 'Información');
   			capaKML.getImpl().selectFeatures([f]);
