@@ -239,7 +239,7 @@ function verDato(idCategoria,dato){
 
     capaKML.getImpl().getOL3Layer().getSource().on('addfeature', function(e) {
 	    		if(window.isIOS()){
-				desc = e.feature.get('description').replace(/geo:(\-?\d+(\.\d+)?),\s?(\-?\d+(\.\d+)?)/,"maps://maps.apple.com");
+				desc = e.feature.get('description').replace(/geo:(\-?\d+(\.\d+)?),\s?(\-?\d+(\.\d+)?)/g,"maps://maps.apple.com");
 				/*$(desc).find('a').each(function(i){
         				if($(this).href.includes('geo')){
           					$(this).attr("href", "maps://maps.apple.com?" + $(this).href.split('?')[1]);
