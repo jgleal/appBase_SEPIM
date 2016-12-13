@@ -208,7 +208,7 @@ function paginarDatos(cat){
 			}
 		 $("#listaDatos").append(htmlElements);
 	    	 $("#listaDatos").listview("refresh");
-
+isIOS
 		if (datos.limit!=-1){//JGL
 		    	 //estilos para el obtener mas datos
 		    	 var botonObtenerMasDatos =  $($("#listaDatos li a").last()[0]);
@@ -238,7 +238,7 @@ function verDato(idCategoria,dato){
   	mapajs.addKML(capaKML);
 
     capaKML.getImpl().getOL3Layer().getSource().on('addfeature', function(e) {
-	    		if(window.isIOS()){
+	    		if(window.isIOS){
 				desc = e.feature.get('description').replace(/geo:(\-?\d+(\.\d+)?),\s?(\-?\d+(\.\d+)?)/g,"maps://maps.apple.com");
 				/*$(desc).find('a').each(function(i){
         				if($(this).href.includes('geo')){
