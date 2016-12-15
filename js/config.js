@@ -18,3 +18,4 @@ M.proxy(false);
 attrNotShow = [ "the_geom", "geom", "_version_", "solrid", "keywords", "equipamiento"];
 window.isApp 	= /^(?!HTTP)/.test(document.URL.toUpperCase());
 window.isIOS 	= /iPad|iPhone|iPod/.test(navigator.userAgent);
+sortCategories = false;

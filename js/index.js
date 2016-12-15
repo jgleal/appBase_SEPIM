@@ -104,7 +104,7 @@ function cargarCategoria(cat){
 	     dataType: "json"
 	 }).done(function(categoriasList){
 	     	//cat==null->estamos en la primera categoría.
-	     	categoriasList.sort(sort_by('name', false));
+	     	if(sortCategories) categoriasList.sort(sort_by('name', false));
 	    	if (cat==null && categoriasList.length===1){
 	    	 	cargarCategoria(categoriasList[0]);
 	    	 	pilaCategorias = [];
@@ -238,23 +238,21 @@ function verDato(idCategoria,dato){
   	mapajs.addKML(capaKML);
 
     capaKML.getImpl().getOL3Layer().getSource().on('addfeature', function(e) {
-	    		if(window.isIOS){
-				desc = e.feature.get('description').replace(/geo:(\-?\d+(\.\d+)?),\s?(\-?\d+(\.\d+)?)/g,"http://maps.apple.com");
-				/*$(desc).find('a').each(function(i){
-        				if($(this).href.includes('geo')){
-          					$(this).attr("href", "maps://maps.apple.com?" + $(this).href.split('?')[1]);
-          				}
-        			});*/
-				e.feature.set('description',desc);
-			}
-  			f=e.feature.clone(); //clono para no modificar la etiqueta
+	    	if(window.isIOS){
+				      desc = e.feature.get('description').replace(/geo:(\-?\d+(\.\d+)?),\s?(\-?\d+(\.\d+)?)/g,
+                                                          "http://maps.apple.com");
+				      e.feature.set('description', desc);
+			  }
+        /* clono para no modificar la etiqueta. Esto conlleva que al seleccionar
+           de nuevo la feature, se pierdo el texto 'Información' de la cabecera
+           y vuelta el nombre */
+  			f=e.feature.clone();
   			f.set('name', 'Información');
   			capaKML.getImpl().selectFeatures([f]);
   		});
 
   	mapajs.setBbox(bbox);
   	$.mobile.changePage("#mapa");
-
 }
 
 //genera sintaxis para crear una capa KML en mapea
@@ -265,7 +263,7 @@ function generarCapaKML(idCategoria,idDato){
 
 
 function getApp(){
-	
+
 	return $.ajax({
             url: url + "/application/" + idAplicacion,
             type: "GET",
@@ -284,16 +282,16 @@ function getApp(){
 	    	 if (urlGB != ""){
 	    	 	$("#btn-gb").show();
 	    	 }
-        
+
 	    	 mapajs = M.map({
 				       controls:["location"],
 				       container:"map",
 				       wmcfile: searchParam(aplicacion.wmcURL,'wmcfile')
-			 });			
+			 });
 	     }).fail(function(){
             navigator.notification.alert("Se ha producido un error al obtener la aplicación con el id: "
                                         + idAplicacion, errorExit, "Error", "Salir");
-	 	 });	 
+	 	 });
 }
 
 function searchParam(stringURL, param){
@@ -336,7 +334,8 @@ function atras(actualPage){
 	}
 }
 
-function atrasMapa(actualPage){ //JGL - cambiado (hay 2 puntos de entrada a mapa)
+function atrasMapa(actualPage){
+  /* hay 2 puntos de entrada a mapa */
 	if ($("#listaDatos li").length>0){
 		$.mobile.changePage("#datos");
 	}else if ($("#listSuggest li").length>0){
@@ -347,8 +346,7 @@ function atrasMapa(actualPage){ //JGL - cambiado (hay 2 puntos de entrada a mapa
 	clearMap();
 }
 
-
-//JGL ==================================== Integración de GB y modificaciones ===============================================
+/* Integración de GB */
 $(document).on("pageinit", "#busqueda", function() {
 	    $("#txtBusqueda").on("keyup", function () {
 	        var $ul = $("#listSuggest"),
