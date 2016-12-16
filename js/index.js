@@ -286,7 +286,8 @@ function getApp(){
 	    	 mapajs = M.map({
 				       controls:["location"],
 				       container:"map",
-				       wmcfile: searchParam(aplicacion.wmcURL,'wmcfile')
+               //wmcfile: searchParam(aplicacion.wmcURL,'wmcfile')
+				       wmcfile: "http://publicacion.i-administracion.junta-andalucia.es/mapea/files/wmc/context_cdau_callejeroSINmin.xml"
 			 });
 	     }).fail(function(){
             navigator.notification.alert("Se ha producido un error al obtener la aplicación con el id: "
